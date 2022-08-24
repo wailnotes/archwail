@@ -15,21 +15,16 @@ AURHELPER="yay"
 BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring )
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 umount -A --recursive /mnt # make sure everything is unmounted before we start
 mkfs.ext4 /dev/sda1
 mount /dev/sda1 /mnt
 
-lsblk && echo "Here're your new block devices. (Type any key to continue...)" ; read empty
-
-
 
 ###############################
 ###  START SCRIPT HERE
 ###############################
-
 
 
 # Set time
@@ -50,16 +45,13 @@ mkdir /mnt &>/dev/null # Hiding error message if any
 
 ###  Install base system
 clear
-echo && echo "Press any key to continue to install BASE SYSTEM..."; read empty
 pacstrap /mnt "${BASE_SYSTEM[@]}"
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
-echo && echo "Base system installed.  Press any key to continue..."; read empty
 
 # GENERATE FSTAB
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 cat /mnt/etc/fstab
-echo && echo "Here's your fstab. Type any key to continue..."; read empty
 
 ## SET UP TIMEZONE AND LOCALE
 clear
@@ -67,7 +59,6 @@ echo && echo "setting timezone to $TIMEZONE..."
 arch-chroot /mnt ln -sf /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
 arch-chroot /mnt hwclock --systohc --utc
 arch-chroot /mnt date
-echo && echo "Here's the date info, hit any key to continue..."; read empty
 
 ## SET UP LOCALE
 clear
@@ -77,7 +68,6 @@ arch-chroot /mnt locale-gen
 echo "LANG=$LOCALE" > /mnt/etc/locale.conf
 export LANG="$LOCALE"
 cat /mnt/etc/locale.conf
-echo && echo "Here's your /mnt/etc/locale.conf. Type any key to continue."; read empty
 
 ## HOSTNAME
 clear
@@ -95,7 +85,6 @@ echo "/etc/hostname . . . "
 cat /mnt/etc/hostname 
 echo "/etc/hosts . . ."
 cat /mnt/etc/hosts
-echo && echo "Here are /etc/hostname and /etc/hosts. Type any key to continue "; read empty
 
 ## SET ROOT PASSWD
 clear
@@ -110,7 +99,6 @@ arch-chroot /mnt systemctl enable dhcpcd.service
 arch-chroot /mnt systemctl enable sshd.service
 arch-chroot /mnt systemctl enable NetworkManager.service
 arch-chroot /mnt systemctl enable systemd-homed
-echo && echo "Press any key to continue..."; read empty
 
 ## ADD USER ACCT
 clear
@@ -125,8 +113,6 @@ arch-chroot /mnt useradd -m -G wheel "$sudo_user"
 echo && echo "Password for $sudo_user?"
 arch-chroot /mnt passwd "$sudo_user"
 
-
-## Not installing X in this script...
 
 ## INSTALL GRUB
 clear
