@@ -17,10 +17,7 @@ AURHELPER="yay"
 # ------ TO BE EDITED - I LL USE MY package list -------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-BASE_SYSTEM=( base base-devel linux linux-headers linux-firmware dkms vim iwd )
-devel_stuff=( git nodejs npm npm-check-updates ruby )
-printing_stuff=( system-config-printer foomatic-db foomatic-db-engine gutenprint cups cups-pdf cups-filters cups-pk-helper ghostscript gsfonts )
-multimedia_stuff=( brasero sox eog shotwell imagemagick sox cmus mpg123 alsa-utils cheese )
+BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring )
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
