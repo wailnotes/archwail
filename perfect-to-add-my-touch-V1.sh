@@ -12,17 +12,13 @@ KEYBOARD="us"
 TIMEZONE="Africa/Casablanca"
 LOCALE="en_US.UTF-8"
 AURHELPER="yay"
-
-
-# ------ TO BE EDITED - I LL USE MY package list -------------------------------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------------------------------------------------------------------------------
-
 BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring )
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
+umount -A --recursive /mnt # make sure everything is unmounted before we start
 mkfs.ext4 /dev/sda1
 mount /dev/sda1 /mnt
 
@@ -48,27 +44,15 @@ setfont ter-v22b
 sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 pacman -S --noconfirm --needed reflector rsync grub
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-reflector --latest 200 --sort rate --save /etc/pacman.d/mirrorlist
+reflector --latest 50 --sort rate --save /etc/pacman.d/mirrorlist
 mkdir /mnt &>/dev/null # Hiding error message if any
-
-
-####  Could just use cfdisk to partition drive
-#cfdisk "$IN_DEVICE"    # for non-EFI VM: /boot 512M; / 13G; Swap 2G; Home Remainder
-
-###  NOTE: Drive partitioning is one of those highly customizable areas where your
-###        personal preferences and needs will dictate your choices.  Many options
-###        exist here.  An MBR disklabel is very old, limited, and may well inspire
-###        you to investigate other options, which is a good exercise.  But, MBR is pretty
-###        simple and reliable, within its constraints.  Bon voyage!
-
-
-
 
 
 ###  Install base system
 clear
 echo && echo "Press any key to continue to install BASE SYSTEM..."; read empty
 pacstrap /mnt "${BASE_SYSTEM[@]}"
+cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 echo && echo "Base system installed.  Press any key to continue..."; read empty
 
 # GENERATE FSTAB
@@ -150,10 +134,12 @@ echo "Installing grub..." && sleep 4
 arch-chroot /mnt pacman -S grub os-prober
 
 ## We're not checking for EFI; We're assuming MBR
-arch-chroot /mnt grub-install --target=i386-pc "$IN_DEVICE"
+arch-chroot /mnt grub-install --target=i386-pc /dev/sda
+
 
 echo "configuring /boot/grub/grub.cfg..."
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
+
 [[ "$?" -eq 0 ]] && echo "mbr bootloader installed..."
 
 echo "Your system is installed.  Type shutdown -h now to shutdown system and remove bootable media, then restart"
