@@ -4,11 +4,11 @@
 
 
 # Settings
-HOSTNAME="thinkpad"
 IN_DEVICE=/dev/sda
+HOSTNAME="thinkpad"
 USERNAME="wn"
-LANGUAGE="en_US"
-KEYBOARD="us"
+#LANGUAGE="en_US"
+#KEYBOARD="us"
 TIMEZONE="Africa/Casablanca"
 LOCALE="en_US.UTF-8"
 AURHELPER="yay"
@@ -16,36 +16,41 @@ BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-usrpwd () { 
-  clear
-  echo -e "\n"
-  read -p "Type your user password, be exact, and press Enter: " USRPWD
-  [[ -z "$USRPWD" ]] && usrpwd
-  clear
-  echo -e "\n"
-  echo "User password set to "${USRPWD}"..."
-  sleep 2
-  clear
-}
-
-rtpwd () { 
-  clear
-  echo -e "\n"
-  read -p "Type your root password, be exact, and press Enter: " RTPWD
-  [[ -z "$RTPWD" ]] && rtpwd
-  clear
-  echo -e "\n"
-  echo "Root password set to "${RTPWD}"..."
-  sleep 2
-  clear
+user_password() {
+    clear
+    read -rs -p "Type the user password: " USERPW1
+    echo -ne "\n"
+    read -rs -p "Re-type the user password: " USERPW2
+    echo -ne "\n"
+    if [[ "$USERPW1" == "$USERPW2" ]]; then
+        echo -e "\n Passwords match"
+    else
+        echo -ne "ERROR! Passwords do not match. \n"
+        user_password
+    fi
 }
 
 
+root_password() {
+    clear
+    read -rs -p "Type the user password: " ROOTPW1
+    echo -ne "\n"
+    read -rs -p "Re-type the user password: " ROOTPW2
+    echo -ne "\n"
+    if [[ "$ROOTPW1" == "$ROOTPW2" ]]; then
+        echo -e "\n Passwords match"
+    else
+        echo -ne "ERROR! Passwords do not match. \n"
+        root_password
+    fi
+}
+
+user_password
+root_password
 
 
 ###############################
-###  Disk Partitioning 
+###  Disk Partitioning TO BE COMPLETED
 ###############################
 
 
@@ -120,9 +125,14 @@ echo "/etc/hosts . . ."
 cat /mnt/etc/hosts
 
 ## SET ROOT PASSWD
-clear
-echo "Setting ROOT password..."
-arch-chroot /mnt passwd
+arch-chroot /mnt useradd -mU -s /bin/bash -G wheel "${USERNAME}"
+arch-chroot /mnt chpasswd <<< ""${USERNAME}":"${USERPW2}""
+arch-chroot /mnt chpasswd <<< "root:"${ROOTPW2}""
+arch-chroot /mnt sed -i 's/# %wheel/%wheel/g' /etc/sudoers
+arch-chroot /mnt sed -i 's/%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
+
+
+
 
 ## INSTALLING MORE ESSENTIALS
 clear
@@ -133,18 +143,6 @@ arch-chroot /mnt systemctl enable sshd.service
 arch-chroot /mnt systemctl enable NetworkManager.service
 arch-chroot /mnt systemctl enable systemd-homed
 
-## ADD USER ACCT
-clear
-echo && echo "Adding sudo + user acct..."
-sleep 2
-arch-chroot /mnt pacman -S sudo bash-completion sshpass
-arch-chroot /mnt sed -i 's/# %wheel/%wheel/g' /etc/sudoers
-arch-chroot /mnt sed -i 's/%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
-echo && echo "Please provide a username: "; read sudo_user
-echo && echo "Creating $sudo_user and adding $sudo_user to sudoers..."
-arch-chroot /mnt useradd -m -G wheel "$sudo_user"
-echo && echo "Password for $sudo_user?"
-arch-chroot /mnt passwd "$sudo_user"
 
 
 ## INSTALL GRUB
