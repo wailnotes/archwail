@@ -12,9 +12,13 @@ USERNAME="wn"
 TIMEZONE="Africa/Casablanca"
 LOCALE="en_US.UTF-8"
 AURHELPER="yay"
-BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring )
+BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring sudo )
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+## ADD an option as to whether you just want the base system, ie no xorg ... OR your full fledged install
+
 
 user_password() {
     clear
@@ -24,6 +28,7 @@ user_password() {
     echo -ne "\n"
     if [[ "$USERPW1" == "$USERPW2" ]]; then
         echo -e "\n Passwords match"
+        sleep 5
     else
         echo -ne "ERROR! Passwords do not match. \n"
         user_password
@@ -33,12 +38,13 @@ user_password() {
 
 root_password() {
     clear
-    read -rs -p "Type the user password: " ROOTPW1
+    read -rs -p "Type the root password: " ROOTPW1
     echo -ne "\n"
-    read -rs -p "Re-type the user password: " ROOTPW2
+    read -rs -p "Re-type the root password: " ROOTPW2
     echo -ne "\n"
     if [[ "$ROOTPW1" == "$ROOTPW2" ]]; then
         echo -e "\n Passwords match"
+        sleep 5
     else
         echo -ne "ERROR! Passwords do not match. \n"
         root_password
