@@ -2,9 +2,16 @@
 
 # https://deepbsd.github.io/linux/arch/2021/02/24/Arch_Linux_Install_Script.html
 
+## ADD an option as to whether you just want the base system, ie no xorg ... OR your full fledged install
 
-# Settings
+
+###############################################################################################
+########################################  Settings  ###########################################
+###############################################################################################
+
+# To be changed, copy from Archtitus, it should be dynamic
 IN_DEVICE=/dev/sda
+
 HOSTNAME="thinkpad"
 USERNAME="wn"
 #LANGUAGE="en_US"
@@ -14,21 +21,15 @@ LOCALE="en_US.UTF-8"
 AURHELPER="yay"
 BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring sudo )
 
-# ------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-## ADD an option as to whether you just want the base system, ie no xorg ... OR your full fledged install
-
-
 user_password() {
     clear
-    read -rs -p "Type the user password: " USERPW1
+    read -rs -p "Type the user & root password: " USERPW1
     echo -ne "\n"
-    read -rs -p "Re-type the user password: " USERPW2
+    read -rs -p "Re-type the user & root password: " USERPW2
     echo -ne "\n"
     if [[ "$USERPW1" == "$USERPW2" ]]; then
         echo -e "\n Passwords match"
-        sleep 5
+        sleep 2
     else
         echo -ne "ERROR! Passwords do not match. \n"
         user_password
@@ -44,7 +45,6 @@ root_password() {
     echo -ne "\n"
     if [[ "$ROOTPW1" == "$ROOTPW2" ]]; then
         echo -e "\n Passwords match"
-        sleep 5
     else
         echo -ne "ERROR! Passwords do not match. \n"
         root_password
@@ -52,7 +52,7 @@ root_password() {
 }
 
 user_password
-root_password
+#root_password
 
 
 ###############################
@@ -70,12 +70,9 @@ mount /dev/sda1 /mnt
 ###############################
 
 
-# Set time
-
 timedatectl set-ntp true
 
 # Setting up mirrors for optimal download
-
 pacman -S --noconfirm archlinux-keyring 
 pacman -S --noconfirm --needed pacman-contrib terminus-font
 setfont ter-v22b
@@ -83,13 +80,13 @@ sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 pacman -S --noconfirm --needed reflector rsync grub
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 reflector --latest 50 --sort rate --save /etc/pacman.d/mirrorlist
-mkdir /mnt &>/dev/null # Hiding error message if any
 
 
 ###  Install base system
 clear
-pacstrap /mnt "${BASE_SYSTEM[@]}"
+pacstrap /mnt "${BASE_SYSTEM[@]}" --noconfirm --needed
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
+
 
 # GENERATE FSTAB
 clear
@@ -133,32 +130,24 @@ cat /mnt/etc/hosts
 ## SET ROOT PASSWD
 arch-chroot /mnt useradd -mU -s /bin/bash -G wheel "${USERNAME}"
 arch-chroot /mnt chpasswd <<< ""${USERNAME}":"${USERPW2}""
-arch-chroot /mnt chpasswd <<< "root:"${ROOTPW2}""
+arch-chroot /mnt chpasswd <<< "root:"${USERPW2}""
 arch-chroot /mnt sed -i 's/# %wheel/%wheel/g' /etc/sudoers
 arch-chroot /mnt sed -i 's/%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
 
 
-
-
 ## INSTALLING MORE ESSENTIALS
 clear
+arch-chroot /mnt sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 echo && echo "Enabling dhcpcd, pambase, sshd and NetworkManager services..." && echo
-arch-chroot /mnt pacman -S git openssh networkmanager dhcpcd man-db man-pages pambase
-arch-chroot /mnt systemctl enable dhcpcd.service
+arch-chroot /mnt pacman -S --noconfirm --needed grub networkmanager network-manager-applet wireless_tools wpa_supplicant dialog os-prober mtools dosfstools base-devel linux-headers xdg-utils xdg-user-dirs openssh
 arch-chroot /mnt systemctl enable sshd.service
 arch-chroot /mnt systemctl enable NetworkManager.service
-arch-chroot /mnt systemctl enable systemd-homed
-
 
 
 ## INSTALL GRUB
 clear
 echo "Installing grub..." && sleep 4
-arch-chroot /mnt pacman -S grub os-prober
-
-## We're not checking for EFI; We're assuming MBR
 arch-chroot /mnt grub-install --target=i386-pc /dev/sda
-
 
 echo "configuring /boot/grub/grub.cfg..."
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
@@ -167,3 +156,53 @@ arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
 echo "Your system is installed.  Type shutdown -h now to shutdown system and remove bootable media, then restart"
 read empty
+
+
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+
+
+# Xorg
+
+
+
+# Video Drivers
+
+## Graphics Drivers find and install
+gpu_type=$(lspci)
+#if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
+#    pacman -S --noconfirm --needed nvidia
+#	nvidia-xconfig
+#elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
+#    pacman -S --noconfirm --needed xf86-video-amdgpu
+#elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
+#    pacman -S --noconfirm --needed libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils lib32-mesa
+#elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
+#    pacman -S --needed --noconfirm libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils lib32-mesa
+#
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
