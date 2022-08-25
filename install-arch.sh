@@ -1,16 +1,10 @@
 #!/usr/bin/env bash
 
-# https://deepbsd.github.io/linux/arch/2021/02/24/Arch_Linux_Install_Script.html
-
 ## ADD an option as to whether you just want the base system, ie no xorg ... OR your full fledged install
-
 
 ###############################################################################################
 ########################################  Settings  ###########################################
 ###############################################################################################
-
-# To be changed, copy from Archtitus, it should be dynamic
-IN_DEVICE=/dev/sda
 
 HOSTNAME="thinkpad"
 USERNAME="wn"
@@ -40,10 +34,16 @@ user_password
 ###  Disk Partitioning TO BE COMPLETED
 ###############################
 
+# To be changed, copy from Archtitus, it should be dynamic
+IN_DEVICE=/dev/sda
+
 
 umount -A --recursive /mnt # make sure everything is unmounted before we start
 mkfs.ext4 /dev/sda1
 mount /dev/sda1 /mnt
+
+
+
 
 
 ###############################
@@ -51,9 +51,8 @@ mount /dev/sda1 /mnt
 ###############################
 
 
-timedatectl set-ntp true
-
 # Setting up mirrors for optimal download
+timedatectl set-ntp true
 pacman -S --noconfirm archlinux-keyring 
 pacman -S --noconfirm --needed pacman-contrib terminus-font
 setfont ter-v22b
@@ -67,7 +66,6 @@ reflector --latest 50 --sort rate --save /etc/pacman.d/mirrorlist
 clear
 pacstrap /mnt "${BASE_SYSTEM[@]}" --noconfirm --needed
 echo "keyserver hkp://keyserver.ubuntu.com" >> /mnt/etc/pacman.d/gnupg/gpg.conf
-cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 
 
 # GENERATE FSTAB
@@ -75,6 +73,7 @@ clear
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 cat /mnt/etc/fstab
+sleep 2
 
 ## SET UP TIMEZONE AND LOCALE
 clear
@@ -110,6 +109,7 @@ echo "/etc/hosts . . ."
 cat /mnt/etc/hosts
 
 ## SET ROOT PASSWD
+clear
 arch-chroot /mnt useradd -mU -s /bin/bash -G wheel "${USERNAME}"
 arch-chroot /mnt chpasswd <<< ""${USERNAME}":"${USERPW2}""
 arch-chroot /mnt chpasswd <<< "root:"${USERPW2}""
@@ -117,19 +117,16 @@ arch-chroot /mnt sed -i 's/# %wheel/%wheel/g' /etc/sudoers
 arch-chroot /mnt sed -i 's/%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
 
 
-
-
-
 echo -ne "
 -------------------------------------------------------------------------
                     Setting up mirrors for optimal download 
 -------------------------------------------------------------------------
 "
+cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 arch-chroot /mnt sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 arch-chroot /mnt pacman -S --noconfirm --needed pacman-contrib curl
 arch-chroot /mnt pacman -S --noconfirm --needed reflector rsync grub arch-install-scripts git
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
-
 
 
 ## INSTALLING MORE ESSENTIALS
@@ -152,68 +149,21 @@ arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 [[ "$?" -eq 0 ]] && echo "mbr bootloader installed..."
 
 
-echo "# achieve the fastest possible boot:" >> /etc/default/grub
-echo "GRUB_FORCE_HIDDEN_MENU="true"" >> /etc/default/grub
-
-
-
 # Get rid of the beep!
 arch-chroot /mnt rmmod pcspkr
 echo "blacklist pcspkr" >/mnt/etc/modprobe.d/nobeep.conf
 
 
+# Remove GRUB Delay & Add the hold shift option to show grub menu
+clear
+echo"Removing GRUB Delay"
+echo "# achieve the fastest possible boot:" >> /etc/default/grub
+echo 'GRUB_FORCE_HIDDEN_MENU="true"' >> /etc/default/grub
+cp 31_hold_shift /mnt/etc/grub.d/
+arch-chroot /mnt chmod a+x /mnt/etc/grub.d/31_hold_shift
+arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
 
 echo "Your system is installed.  Type shutdown -h now to shutdown system and remove bootable media, then restart"
 read empty
-
-
-#---------------------------------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------------------------------
-#---------------------------------------------------------------------------------------------------------------------------
-
-
-# Xorg
-
-
-
-# Video Drivers
-
-## Graphics Drivers find and install
-gpu_type=$(lspci)
-#if grep -E "NVIDIA|GeForce" <<< ${gpu_type}; then
-#    pacman -S --noconfirm --needed nvidia
-#	nvidia-xconfig
-#elif lspci | grep 'VGA' | grep -E "Radeon|AMD"; then
-#    pacman -S --noconfirm --needed xf86-video-amdgpu
-#elif grep -E "Integrated Graphics Controller" <<< ${gpu_type}; then
-#    pacman -S --noconfirm --needed libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils lib32-mesa
-#elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
-#    pacman -S --needed --noconfirm libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils lib32-mesa
-#
-#
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

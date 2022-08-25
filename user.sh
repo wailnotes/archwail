@@ -29,9 +29,7 @@ elif grep -E "Intel Corporation UHD" <<< ${gpu_type}; then
 
 
 # xorg
-
-
-
+pacman -S --needed --noconfirm xorg xorg-xinit
 
 
 
