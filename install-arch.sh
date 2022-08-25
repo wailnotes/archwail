@@ -14,11 +14,8 @@ IN_DEVICE=/dev/sda
 
 HOSTNAME="thinkpad"
 USERNAME="wn"
-#LANGUAGE="en_US"
-#KEYBOARD="us"
 TIMEZONE="Africa/Casablanca"
 LOCALE="en_US.UTF-8"
-AURHELPER="yay"
 BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring sudo )
 
 user_password() {
@@ -36,23 +33,7 @@ user_password() {
     fi
 }
 
-
-root_password() {
-    clear
-    read -rs -p "Type the root password: " ROOTPW1
-    echo -ne "\n"
-    read -rs -p "Re-type the root password: " ROOTPW2
-    echo -ne "\n"
-    if [[ "$ROOTPW1" == "$ROOTPW2" ]]; then
-        echo -e "\n Passwords match"
-    else
-        echo -ne "ERROR! Passwords do not match. \n"
-        root_password
-    fi
-}
-
 user_password
-#root_password
 
 
 ###############################
@@ -85,6 +66,7 @@ reflector --latest 50 --sort rate --save /etc/pacman.d/mirrorlist
 ###  Install base system
 clear
 pacstrap /mnt "${BASE_SYSTEM[@]}" --noconfirm --needed
+echo "keyserver hkp://keyserver.ubuntu.com" >> /mnt/etc/pacman.d/gnupg/gpg.conf
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist
 
 
@@ -135,13 +117,28 @@ arch-chroot /mnt sed -i 's/# %wheel/%wheel/g' /etc/sudoers
 arch-chroot /mnt sed -i 's/%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
 
 
+
+
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Setting up mirrors for optimal download 
+-------------------------------------------------------------------------
+"
+arch-chroot /mnt sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
+arch-chroot /mnt pacman -S --noconfirm --needed pacman-contrib curl
+arch-chroot /mnt pacman -S --noconfirm --needed reflector rsync grub arch-install-scripts git
+cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
+
+
+
 ## INSTALLING MORE ESSENTIALS
 clear
-arch-chroot /mnt sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
 echo && echo "Enabling dhcpcd, pambase, sshd and NetworkManager services..." && echo
-arch-chroot /mnt pacman -S --noconfirm --needed grub networkmanager network-manager-applet wireless_tools wpa_supplicant dialog os-prober mtools dosfstools base-devel linux-headers xdg-utils xdg-user-dirs openssh
+arch-chroot /mnt pacman -S --noconfirm --needed grub networkmanager network-manager-applet wireless_tools wpa_supplicant dialog os-prober mtools dosfstools base-devel linux-headers xdg-utils xdg-user-dirs openssh terminus-font
 arch-chroot /mnt systemctl enable sshd.service
 arch-chroot /mnt systemctl enable NetworkManager.service
+echo "FONT=ter-128n.psf.gz" >> /mnt/etc/vconsole.conf 
 
 
 ## INSTALL GRUB
@@ -153,6 +150,19 @@ echo "configuring /boot/grub/grub.cfg..."
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
 [[ "$?" -eq 0 ]] && echo "mbr bootloader installed..."
+
+
+echo "# achieve the fastest possible boot:" >> /etc/default/grub
+echo "GRUB_FORCE_HIDDEN_MENU="true"" >> /etc/default/grub
+
+
+
+# Get rid of the beep!
+arch-chroot /mnt rmmod pcspkr
+echo "blacklist pcspkr" >/mnt/etc/modprobe.d/nobeep.conf
+
+
+
 
 echo "Your system is installed.  Type shutdown -h now to shutdown system and remove bootable media, then restart"
 read empty
@@ -184,6 +194,7 @@ gpu_type=$(lspci)
 #    pacman -S --needed --noconfirm libva-intel-driver libvdpau-va-gl lib32-vulkan-intel vulkan-intel libva-intel-driver libva-utils lib32-mesa
 #
 #
+
 
 
 
