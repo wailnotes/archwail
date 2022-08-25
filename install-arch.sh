@@ -160,8 +160,8 @@ clear
 echo "Removing GRUB Delay"
 echo "# achieve the fastest possible boot:" >> /mnt/etc/default/grub
 echo 'GRUB_FORCE_HIDDEN_MENU="true"' >> /mnt/etc/default/grub
-cp 31_hold_shift /mnt/etc/grub.d/
-arch-chroot /mnt chmod a+x /mnt/etc/grub.d/31_hold_shift
+cp ~/archwail/31_hold_shift /mnt/etc/grub.d/
+chmod a+x /mnt/etc/grub.d/31_hold_shift
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
 
