@@ -253,7 +253,7 @@ echo "FONT=ter-128n.psf.gz" >> /mnt/etc/vconsole.conf
 ## INSTALL GRUB
 clear
 echo "Installing grub..." && sleep 4
-arch-chroot /mnt grub-install --target=i386-pc /dev/sda
+arch-chroot /mnt grub-install --target=i386-pc ${IN_DEVICE}
 
 echo "configuring /boot/grub/grub.cfg..."
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
