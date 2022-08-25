@@ -13,9 +13,9 @@ BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode
 # Set User and root password (they're the same)
 
 user_password() {
-    read -rs -p "Type the user & root password: " USERPW1
+    read -rs -p "password (user & root) = " USERPW1
     echo -ne "\n"
-    read -rs -p "Re-type the user & root password: " USERPW2
+    read -rs -p "Re-type the password = " USERPW2
     echo -ne "\n"
     if [[ "$USERPW1" == "$USERPW2" ]]; then
         echo -e "\n Passwords match"
@@ -30,9 +30,7 @@ echo -ne "
 -------------------------------------------------------------------------
                             User Settings
 -------------------------------------------------------------------------
-
 "
-echo "------------------ Settings ----------------"
 echo "Username = "$USERNAME""
 echo "Hostname = "$HOSTNAME""
 echo "Timezone = "$TIMEZONE""
@@ -42,6 +40,7 @@ user_password
 
 echo "--------------------------------------------"
 sleep 2
+clear
 
 ###############################################################################################
 
@@ -148,6 +147,12 @@ select_option() {
 
     return $(( $active_col + $active_row * $colmax ))
 }
+
+echo -ne "
+-------------------------------------------------------------------------
+                            Disk Partionning
+-------------------------------------------------------------------------
+"
 
 echo "Select the disk to install on: "
 options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
