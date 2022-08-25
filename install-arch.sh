@@ -39,6 +39,7 @@ IN_DEVICE=/dev/sda
 
 
 umount -A --recursive /mnt # make sure everything is unmounted before we start
+#parted ${device} mklabel msdos
 mkfs.ext4 /dev/sda1
 mount /dev/sda1 /mnt
 
@@ -151,14 +152,14 @@ arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
 # Get rid of the beep!
 arch-chroot /mnt rmmod pcspkr
-echo "blacklist pcspkr" >/mnt/etc/modprobe.d/nobeep.conf
+echo "blacklist pcspkr" >> /mnt/etc/modprobe.d/nobeep.conf
 
 
 # Remove GRUB Delay & Add the hold shift option to show grub menu
 clear
-echo"Removing GRUB Delay"
-echo "# achieve the fastest possible boot:" >> /etc/default/grub
-echo 'GRUB_FORCE_HIDDEN_MENU="true"' >> /etc/default/grub
+echo "Removing GRUB Delay"
+echo "# achieve the fastest possible boot:" >> /mnt/etc/default/grub
+echo 'GRUB_FORCE_HIDDEN_MENU="true"' >> /mnt/etc/default/grub
 cp 31_hold_shift /mnt/etc/grub.d/
 arch-chroot /mnt chmod a+x /mnt/etc/grub.d/31_hold_shift
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
