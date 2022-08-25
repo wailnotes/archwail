@@ -38,7 +38,6 @@ echo "Locale = "$LOCALE""
 
 user_password
 
-echo "--------------------------------------------"
 sleep 2
 clear
 
@@ -154,6 +153,8 @@ echo -ne "
 -------------------------------------------------------------------------
 "
 
+lsblk
+
 echo "Select the disk to install on: "
 options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|"$3}'))
 
@@ -161,12 +162,20 @@ select_option $? 1 "${options[@]}"
 IN_DEVICE=${options[$?]%|*}
 
 umount -A --recursive /mnt # make sure everything is unmounted before we start
-parted --script ${IN_DEVICE} mklabel msdos
+parted ${IN_DEVICE} mklabel msdos
 echo -e "n\np\n\n\n\nw" | fdisk ${IN_DEVICE}
 mkfs.ext4 "${IN_DEVICE}"\1
 mount "${IN_DEVICE}"\1 /mnt
 
-###############################################################################################
+lsblk
+sleep 3
+
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                 Setting up mirrors for optimal download
+-------------------------------------------------------------------------
+"
 
 # Setting up mirrors for optimal download
 timedatectl set-ntp true
@@ -179,28 +188,46 @@ cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
 reflector --latest 50 --sort rate --save /etc/pacman.d/mirrorlist
 
 
-###  Install base system
 clear
+echo -ne "
+-------------------------------------------------------------------------
+                               Pacstrap
+-------------------------------------------------------------------------
+"
+
+
+###  Install base system
 pacstrap /mnt "${BASE_SYSTEM[@]}" --noconfirm --needed
 echo "keyserver hkp://keyserver.ubuntu.com" >> /mnt/etc/pacman.d/gnupg/gpg.conf
 
 
-# GENERATE FSTAB
 clear
+echo -ne "
+-------------------------------------------------------------------------
+                               FSTAB
+-------------------------------------------------------------------------
+"
+
+# GENERATE FSTAB
 echo "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 cat /mnt/etc/fstab
 sleep 2
 
-## SET UP TIMEZONE AND LOCALE
 clear
+echo -ne "
+-------------------------------------------------------------------------
+                       TIMEZONE, LOCALE, HOST
+-------------------------------------------------------------------------
+"
+
+## SET UP TIMEZONE AND LOCALE
 echo && echo "setting timezone to $TIMEZONE..."
 arch-chroot /mnt ln -sf /usr/share/zoneinfo/"$TIMEZONE" /etc/localtime
 arch-chroot /mnt hwclock --systohc --utc
 arch-chroot /mnt date
 
 ## SET UP LOCALE
-clear
 echo && echo "setting locale to $LOCALE ..."
 arch-chroot /mnt sed -i "s/#$LOCALE/$LOCALE/g" /etc/locale.gen
 arch-chroot /mnt locale-gen
@@ -209,7 +236,6 @@ export LANG="$LOCALE"
 cat /mnt/etc/locale.conf
 
 ## HOSTNAME
-clear
 echo && echo "Setting hostname..."; sleep 3
 echo "$HOSTNAME" > /mnt/etc/hostname
 
@@ -226,14 +252,13 @@ echo "/etc/hosts . . ."
 cat /mnt/etc/hosts
 
 ## SET ROOT PASSWD
-clear
 arch-chroot /mnt useradd -mU -s /bin/bash -G wheel "${USERNAME}"
 arch-chroot /mnt chpasswd <<< ""${USERNAME}":"${USERPW2}""
 arch-chroot /mnt chpasswd <<< "root:"${USERPW2}""
 arch-chroot /mnt sed -i 's/# %wheel/%wheel/g' /etc/sudoers
 arch-chroot /mnt sed -i 's/%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
 
-
+clear
 echo -ne "
 -------------------------------------------------------------------------
                     Setting up mirrors for optimal download 
@@ -246,17 +271,26 @@ arch-chroot /mnt pacman -S --noconfirm --needed reflector rsync grub arch-instal
 cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.bak
 
 
-## INSTALLING MORE ESSENTIALS
 clear
-echo && echo "Enabling dhcpcd, pambase, sshd and NetworkManager services..." && echo
+echo -ne "
+-------------------------------------------------------------------------
+                       INSTALLING MORE ESSENTIALS
+-------------------------------------------------------------------------
+"
+## INSTALLING MORE ESSENTIALS
 arch-chroot /mnt pacman -S --noconfirm --needed networkmanager network-manager-applet wireless_tools wpa_supplicant dialog os-prober mtools dosfstools base-devel xdg-utils xdg-user-dirs openssh terminus-font
 arch-chroot /mnt systemctl enable sshd.service
 arch-chroot /mnt systemctl enable NetworkManager.service
 echo "FONT=ter-128n.psf.gz" >> /mnt/etc/vconsole.conf 
 
 
-## INSTALL GRUB
 clear
+echo -ne "
+-------------------------------------------------------------------------
+                                 GRUB
+-------------------------------------------------------------------------
+"
+## INSTALL GRUB
 echo "Installing grub..." && sleep 4
 arch-chroot /mnt grub-install --target=i386-pc ${IN_DEVICE}
 
@@ -266,9 +300,6 @@ arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 [[ "$?" -eq 0 ]] && echo "mbr bootloader installed..."
 
 
-# Get rid of the beep!
-arch-chroot /mnt rmmod pcspkr
-echo "blacklist pcspkr" >> /mnt/etc/modprobe.d/nobeep.conf
 
 
 # Remove GRUB Delay & Add the hold shift option to show grub menu
@@ -280,6 +311,9 @@ cp ~/archwail/31_hold_shift /mnt/etc/grub.d/
 chmod a+x /mnt/etc/grub.d/31_hold_shift
 arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 
+# Get rid of the beep!
+arch-chroot /mnt rmmod pcspkr
+echo "blacklist pcspkr" >> /mnt/etc/modprobe.d/nobeep.conf
 
 echo "Your system is installed.  Type shutdown -h now to shutdown system and remove bootable media, then restart"
 read empty
