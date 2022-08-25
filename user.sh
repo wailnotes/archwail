@@ -6,7 +6,6 @@ AUR_HELPER="yay"
 -----------------------------------------------------------------------------------------------------------------------------------
 -----------------------------------------------------------------------------------------------------------------------------------
 
-
 # Install Yay 
 cd ~
 git clone "https://aur.archlinux.org/$AUR_HELPER.git"
@@ -33,7 +32,25 @@ pacman -S --needed --noconfirm xorg xorg-xinit
 
 
 
+# vim Plug
 
+sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+
+
+
+
+
+# enable services
+
+systemctl --user enable mpd.service
+sudo systemctl enable bluetooth.service
+
+
+# Get fonts
+
+git clone https://gitlab.com/waildots/linux-fonts.git
+sudo fc-cache -fv
 
 
 
