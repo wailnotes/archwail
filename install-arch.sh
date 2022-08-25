@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 
-## ADD an option as to whether you just want the base system, ie no xorg ... OR your full fledged install
-
-###############################################################################################
 ########################################  Settings  ###########################################
-###############################################################################################
 
 HOSTNAME="thinkpad"
 USERNAME="wn"
@@ -12,28 +8,42 @@ TIMEZONE="Africa/Casablanca"
 LOCALE="en_US.UTF-8"
 BASE_SYSTEM=( base linux-lts linux-lts-headers linux-firmware neovim intel-ucode archlinux-keyring sudo )
 
+###############################################################################################
+
+# Set User and root password (they're the same)
+
 user_password() {
-    clear
     read -rs -p "Type the user & root password: " USERPW1
     echo -ne "\n"
     read -rs -p "Re-type the user & root password: " USERPW2
     echo -ne "\n"
     if [[ "$USERPW1" == "$USERPW2" ]]; then
         echo -e "\n Passwords match"
-        sleep 2
     else
         echo -ne "ERROR! Passwords do not match. \n"
         user_password
     fi
 }
 
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                            User Settings
+-------------------------------------------------------------------------
+
+"
+echo "------------------ Settings ----------------"
+echo "Username = "$USERNAME""
+echo "Hostname = "$HOSTNAME""
+echo "Timezone = "$TIMEZONE""
+echo "Locale = "$LOCALE""
+
 user_password
 
+echo "--------------------------------------------"
+sleep 2
 
-###############################
-###  Disk Partitioning TO BE COMPLETED
-###############################
-
+###############################################################################################
 
 select_option() {
 
@@ -145,23 +155,13 @@ options=($(lsblk -n --output TYPE,KNAME,SIZE | awk '$1=="disk"{print "/dev/"$2"|
 select_option $? 1 "${options[@]}"
 IN_DEVICE=${options[$?]%|*}
 
-___
-
 umount -A --recursive /mnt # make sure everything is unmounted before we start
-
-parted ${IN_DEVICE} mklabel msdos
+parted --script ${IN_DEVICE} mklabel msdos
 echo -e "n\np\n\n\n\nw" | fdisk ${IN_DEVICE}
-mkfs.ext4 /dev/"${IN_DEVICE}"\1
-mount /dev/"${IN_DEVICE}"\1 /mnt
+mkfs.ext4 "${IN_DEVICE}"\1
+mount "${IN_DEVICE}"\1 /mnt
 
-
-
-
-
-###############################
-###  START SCRIPT HERE
-###############################
-
+###############################################################################################
 
 # Setting up mirrors for optimal download
 timedatectl set-ntp true
