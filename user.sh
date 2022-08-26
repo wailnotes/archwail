@@ -4,10 +4,12 @@
 
 AUR_HELPER="yay"
 USERNAME="wn"
-GITLAB_USER="waildots"
-GITLAB_REPO="dots"
-GITHUB_USER="wailnotes"
-GITHUB_REPO=
+DOTS_REPO="https://gitlab.com/waildots/dots.git"
+DWM_REPO="https://gitlab.com/waildots/dwm.git"
+DWMBLOCKS_REPO="https://gitlab.com/waildots/dwmblocks.git"
+ST_REPO="https://gitlab.com/waildots/st.git"
+SLOCK_REPO="https://gitlab.com/waildots/slock.git"
+FONTS_REPO="https://gitlab.com/waildots/linux-fonts.git"
 
 ######################################################################################################
 
@@ -17,7 +19,7 @@ git clone "https://aur.archlinux.org/$AUR_HELPER.git"
 cd /home/$USERNAME/$AUR_HELPER
 makepkg -si --noconfirm
 cd /home/$USERNAME
-rm -r /home/$USERNAME/$AUR_HELPER
+rm -rf /home/$USERNAME/$AUR_HELPER
 
 ####################### $AUR_HELPER -S --noconfirm --needed ${line}
 
@@ -59,11 +61,24 @@ sudo fc-cache -fv
 # Get dotfiles
 ##########################################################################################################################################################################
 
-pacman -S --noconfirm --needed git
-git clone https://gitlab.com/"$GITLAB_USER"/"$GITLAB_REPO".git
-rm -fr "$GITLAB_REPO"/.git
-cp -R "$GITHUB_REPO"/* /home/"${$USERNAME}"/
-rm -fr "$GITHUB_REPO"
+# dots
+cd /home/$USERNAME
+sudo pacman -S --noconfirm --needed git
+git clone -b master $DOTS_REPO
+rm -fr $DOTS_REPO/.git
+cp -rfv $DOTS_REPO/* /home/$USERNAME/
+cp -rfv $DOTS_REPO/.* /home/$USERNAME/
+rm -fr $DOTS_REPO
+
+# dwm
+git clone $DWM_REPO
+cd /home/$USERNAME/$DWM_REPO
+sudo make clean install
+
+
+
+
+
 
 
 #----
