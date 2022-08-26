@@ -104,7 +104,7 @@ vimplugininstall() {
 }
 
 # Install vim plugins if not alread present.
-[ ! -f "/home/$name/.config/nvim/autoload/plug.vim" ] && vimplugininstall
+[ ! -f "/home/$USERNAME/.config/nvim/autoload/plug.vim" ] && vimplugininstall
 
 
 # Android
@@ -126,6 +126,36 @@ sudo fc-cache -fv
 rm -rf linux-fonts
 
 
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                     Cleaning the home directory
+-------------------------------------------------------------------------
+"
+# spring cleaning the home directory DANGEROUS
+
+mkdir pc dl temp
+
+remove_if_empty() {
+    if [ -z "$(ls -A $1)" ]; then
+    rm -rf $1
+    else
+    mv -v * /home/$USERNAME/dl
+    rm -rf $1
+    fi
+}
+
+remove_if_empty /home/$USERNAME/Desktop
+remove_if_empty /home/$USERNAME/Downloads
+remove_if_empty /home/$USERNAME/Documents
+remove_if_empty /home/$USERNAME/Music
+remove_if_empty /home/$USERNAME/Pictures
+remove_if_empty /home/$USERNAME/Public
+remove_if_empty /home/$USERNAME/Templates
+remove_if_empty /home/$USERNAME/Videos
+
+xdg-user-dirs-update
+
 
 # setup the bare git repo
 #cd /home/$USERNAME
@@ -138,12 +168,5 @@ rm -rf linux-fonts
 #config add /path/to/file
 #config commit -m "A short message"
 #config push
-
-
-# spring cleaning the home directory
-rm -rf /Desktop /Downloads /Documents /Music /Pictures /Public /Templates /Videos
-mkdir /pc /dl /temp
-xdg-user-dirs-update
-
 
 
