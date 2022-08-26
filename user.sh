@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 
-######################################################################################################
+#----------------#
 
 AUR_HELPER="yay"
 USERNAME="wn"
-DOTS_REPO="https://gitlab.com/waildots/dots.git"
 
-######################################################################################################
+#----------------#
 
-# Install Yay 
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                        Installing $AUR_HELPER
+-------------------------------------------------------------------------
+"
+
 cd /home/$USERNAME
 git clone "https://aur.archlinux.org/$AUR_HELPER.git"
 cd /home/$USERNAME/$AUR_HELPER
@@ -16,55 +21,45 @@ makepkg -si --noconfirm
 cd /home/$USERNAME
 rm -rf /home/$USERNAME/$AUR_HELPER
 
-####################### $AUR_HELPER -S --noconfirm --needed ${line}
 
-# video driver
-pacman -S --noconfirm --needed xf86-video-intel libva-intel-driver libvdpau-va-gl vulkan-intel libva-intel-driver libva-utils
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                         Installing Packages
+-------------------------------------------------------------------------
+"
 
+echo "Getting the packages lists ..."
+cd /home/$USERNAME
+wget https://gitlab.com/waildots/dots/-/raw/master/.config/epackages.txt
+wget https://gitlab.com/waildots/dots/-/raw/master/.config/aurpackages.txt
 
-# xorg
-pacman -S --needed --noconfirm xorg xorg-xinit
-
-
-# Install Packages
 pacman -S --noconfirm --needed - < epackages.txt
-pacman -S --noconfirm --needed - < aurpackages.txt
+$AUR_HELPER -S --noconfirm --needed - < aurpackages.txt
+
+rm epackages.txt
+rm aurpackages.txt
 
 
-# vim Plug
-
-sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
-       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
-
-
+# Adb sync
+#git clone https://github.com/google/adb-sync
+#cd adb-sync
+#cp adb-sync /usr/local/bin/
 
 
-
-# enable services
-
+# Enabling services
 systemctl --user enable mpd.service
 sudo systemctl enable bluetooth.service
+#sudo gpasswd -a $USERS vboxusers
+#sudo modprobe vboxdrv
 
 
-# Get fonts
-
-git clone https://gitlab.com/waildots/linux-fonts.git
-sudo fc-cache -fv
-
-
-##########################################################################################################################################################################
-# Get dotfiles
-##########################################################################################################################################################################
-
-# dots
-cd /home/$USERNAME
-sudo pacman -S --noconfirm --needed git
-git clone -b master $DOTS_REPO
-rm -fr $DOTS_REPO/.git
-cp -rfv $DOTS_REPO/* /home/$USERNAME/
-cp -rfv $DOTS_REPO/.* /home/$USERNAME/
-rm -fr $DOTS_REPO
-
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                      Installing Suckless Programs
+-------------------------------------------------------------------------
+"
 
 install_suckless() {
     cd /home/$USERNAME
@@ -75,25 +70,80 @@ install_suckless() {
     rm -rf $1/
 }
 
+install_suckless dwm
 install_suckless dwmblocks
+install_suckless st
+install_suckless slock
+
+
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                         Restoring dotfiles
+-------------------------------------------------------------------------
+"
+
+# dots
+cd /home/$USERNAME
+sudo pacman -S --noconfirm --needed git
+git clone -b master https://gitlab.com/waildots/dots.git
+rm -fr dots/.git
+cp -rfv dots/* /home/$USERNAME/
+cp -rfv dots/.* /home/$USERNAME/
+rm -fr dots
+sudo cp -f /home/$USERNAME/.config/00-keyboard.conf /etc/X11/xorg.conf.d/
+sudo cp -f /home/$USERNAME/.config/00-touchpad.conf /etc/X11/xorg.conf.d/
+
+
+vimplugininstall() {
+	# Installs vim plugins.
+	mkdir -p "/home/$USERNAME/.config/nvim/autoload"
+	curl -Ls "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim" >  "/home/$USERNAME/.config/nvim/autoload/plug.vim"
+	chown -R "$USERNAME:wheel" "/home/$USERNAME/.config/nvim"
+	sudo -u "$USERNAME" nvim -c "PlugInstall|q|q"
+}
+
+# Install vim plugins if not alread present.
+[ ! -f "/home/$name/.config/nvim/autoload/plug.vim" ] && vimplugininstall
+
+
+# Android
+sed -i 's/^#user_allow_other/user_allow_other/' /etc/fuse.conf
+
+
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                         Restoring Fonts
+-------------------------------------------------------------------------
+"
+
+# Get fonts
+cd /home/$USERNAME
+git clone https://gitlab.com/waildots/linux-fonts.git
+sudo cp -fr linux-fonts/* /usr/share/fonts/
+sudo fc-cache -fv
+rm -rf linux-fonts
 
 
 
-#----
+# setup the bare git repo
+#cd /home/$USERNAME
+#mkdir dots
+#config config --local status.showUntrackedFiles no
+#
+#git clone the dots repo
+#list all the file paths in it
+#put them in a file
+#config add /path/to/file
+#config commit -m "A short message"
+#config push
 
 
-# Enable services
-systemctl --user enable mpd.service
-sudo systemctl enable bluetooth.service
-
-
-# Setup virtualbox
-sudo gpasswd -a $USERS vboxusers
-sudo modprobe vboxdrv
+# spring cleaning the home directory
+rm -rf /Desktop /Downloads /Documents /Music /Pictures /Public /Templates /Videos
+mkdir /pc /dl /temp
+xdg-user-dirs-update
 
 
 
-# Adb sync
-git clone https://github.com/google/adb-sync
-cd adb-sync
-cp adb-sync /usr/local/bin/
