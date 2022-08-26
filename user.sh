@@ -31,10 +31,11 @@ echo -ne "
 
 echo "Getting the packages lists ..."
 cd /home/$USERNAME
+sudo pacman -S --no-confirm --needed wget
 wget https://gitlab.com/waildots/dots/-/raw/master/.config/epackages.txt
 wget https://gitlab.com/waildots/dots/-/raw/master/.config/aurpackages.txt
 
-pacman -S --noconfirm --needed - < epackages.txt
+sudo pacman -S --noconfirm --needed - < epackages.txt
 $AUR_HELPER -S --noconfirm --needed - < aurpackages.txt
 
 rm epackages.txt
