@@ -123,8 +123,6 @@ echo -ne "
                      Cleaning the home directory
 -------------------------------------------------------------------------
 "
-# spring cleaning the home directory
-
 rm /home/$USERNAME/epackages.txt
 rm /home/$USERNAME/aurpackages.txt
 
