@@ -325,21 +325,17 @@ arch-chroot /mnt rmmod pcspkr
 echo "blacklist pcspkr" >> /mnt/etc/modprobe.d/nobeep.conf
 
 
+#-------------------------------------------------------------------------
+
 # Install vbox guest addition
-if [ "$vbox_install" == "yes" ]; then
+hypervisor=$(systemd-detect-virt)
+if [[ !"$hypervisor" == "none" ]]; then
 clear
 echo -ne "
 -------------------------------------------------------------------------
                          Virtualbox Setup
 -------------------------------------------------------------------------
 "
-arch-chroot /mnt pacman --noconfirm -S virtualbox-guest-modules
-echo "vboxguest
-vboxsf
-vboxvideo
-" > /etc/modules-load.d/virtualbox.conf
-fi
-
 
 virt_check () {
     hypervisor=$(systemd-detect-virt)
@@ -355,6 +351,9 @@ virt_check () {
                     ;;
         oracle )    info_print "VirtualBox has been detected, setting up guest tools."
                     pacstrap /mnt virtualbox-guest-utils &>/dev/null
+                    echo "vboxguest" >> /etc/modules-load.d/virtualbox.conf
+                    echo "vboxsf" >> /etc/modules-load.d/virtualbox.conf
+                    echo "vboxvideo" >> /etc/modules-load.d/virtualbox.conf
                     systemctl enable vboxservice --root=/mnt &>/dev/null
                     ;;
         microsoft ) info_print "Hyper-V has been detected, setting up guest tools."
@@ -365,8 +364,6 @@ virt_check () {
                     ;;
     esac
 }
-
-
 
 
 echo "Your system is installed.  Type shutdown -h now to shutdown system and remove bootable media, then restart"
