@@ -3,22 +3,15 @@
 ######################################################################################################
 
 AUR_HELPER="yay"
-USERNAME="wn"
-GITLAB_USER="waildots"
-GITLAB_REPO="dots"
-GITHUB_USER="wailnotes"
-GITHUB_REPO=
+
 
 ######################################################################################################
 
 # Install Yay 
-cd /home/$USERNAME
+cd ~
 git clone "https://aur.archlinux.org/$AUR_HELPER.git"
-cd /home/$USERNAME/$AUR_HELPER
+cd ~/$AUR_HELPER
 makepkg -si --noconfirm
-cd /home/$USERNAME
-rm -r /home/$USERNAME/$AUR_HELPER
-
 ####################### $AUR_HELPER -S --noconfirm --needed ${line}
 
 # video driver
@@ -55,16 +48,42 @@ git clone https://gitlab.com/waildots/linux-fonts.git
 sudo fc-cache -fv
 
 
-##########################################################################################################################################################################
+
 # Get dotfiles
-##########################################################################################################################################################################
 
-pacman -S --noconfirm --needed git
-git clone https://gitlab.com/"$GITLAB_USER"/"$GITLAB_REPO".git
-rm -fr "$GITLAB_REPO"/.git
-cp -R "$GITHUB_REPO"/* /home/"${$USERNAME}"/
-rm -fr "$GITHUB_REPO"
 
+
+
+putgitrepo() {
+	# Downloads a gitrepo $1 and places the files in $2 only overwriting conflicts
+	whiptail --infobox "Downloading and installing config files..." 7 60
+	[ -z "$3" ] && branch="master" || branch="$repobranch"
+	dir=$(mktemp -d)
+	[ ! -d "$2" ] && mkdir -p "$2"
+	chown "$name":wheel "$dir" "$2"
+	sudo -u "$name" git -C "$repodir" clone --depth 1 \
+		--single-branch --no-tags -q --recursive -b "$branch" \
+		--recurse-submodules "$1" "$dir"
+	sudo -u "$name" cp -rfT "$dir" "$2"
+}
+
+vimplugininstall() {
+	# Installs vim plugins.
+	whiptail --infobox "Installing neovim plugins..." 7 60
+	mkdir -p "/home/$name/.config/nvim/autoload"
+	curl -Ls "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim" >  "/home/$name/.config/nvim/autoload/plug.vim"
+	chown -R "$name:wheel" "/home/$name/.config/nvim"
+	sudo -u "$name" nvim -c "PlugInstall|q|q"
+}
+
+
+# Install the dotfiles in the user's home directory, but remove .git dir and
+# other unnecessary files.
+putgitrepo "$dotfilesrepo" "/home/$name" "$repobranch"
+rm -rf "/home/$name/.git/" "/home/$name/README.md" "/home/$name/LICENSE" "/home/$name/FUNDING.yml"
+
+# Install vim plugins if not alread present.
+[ ! -f "/home/$name/.config/nvim/autoload/plug.vim" ] && vimplugininstall
 
 #----
 

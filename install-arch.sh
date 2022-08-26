@@ -38,7 +38,10 @@ echo "Locale = "$LOCALE""
 
 user_password
 
-sleep 2
+
+echo "Virtual box install? Please enter 'yes' to confirm, 'no' to reject:"
+read vbox_install
+
 clear
 
 ###############################################################################################
@@ -195,11 +198,9 @@ echo -ne "
 -------------------------------------------------------------------------
 "
 
-
 ###  Install base system
 pacstrap /mnt "${BASE_SYSTEM[@]}" --noconfirm --needed
 echo "keyserver hkp://keyserver.ubuntu.com" >> /mnt/etc/pacman.d/gnupg/gpg.conf
-
 
 clear
 echo -ne "
@@ -251,12 +252,23 @@ cat /mnt/etc/hostname
 echo "/etc/hosts . . ."
 cat /mnt/etc/hosts
 
+
+
+echo -ne "
+-------------------------------------------------------------------------
+                    Adding User
+-------------------------------------------------------------------------
+"
+
 ## SET ROOT PASSWD
-arch-chroot /mnt useradd -mU -s /bin/bash -G wheel "${USERNAME}"
+arch-chroot groupadd libvirt
+arch-chroot /mnt useradd -mU -s /bin/bash -G wheel,libvirt "${USERNAME}"
 arch-chroot /mnt chpasswd <<< ""${USERNAME}":"${USERPW2}""
 arch-chroot /mnt chpasswd <<< "root:"${USERPW2}""
 arch-chroot /mnt sed -i 's/# %wheel/%wheel/g' /etc/sudoers
 arch-chroot /mnt sed -i 's/%wheel ALL=(ALL) NOPASSWD: ALL/# %wheel ALL=(ALL) NOPASSWD: ALL/g' /etc/sudoers
+echo "$USERNAME created, home directory created, added to wheel and libvirt group, default shell set to /bin/bash"
+
 
 clear
 echo -ne "
@@ -300,10 +312,7 @@ arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 [[ "$?" -eq 0 ]] && echo "mbr bootloader installed..."
 
 
-
-
 # Remove GRUB Delay & Add the hold shift option to show grub menu
-clear
 echo "Removing GRUB Delay"
 echo "# achieve the fastest possible boot:" >> /mnt/etc/default/grub
 echo 'GRUB_FORCE_HIDDEN_MENU="true"' >> /mnt/etc/default/grub
@@ -315,6 +324,50 @@ arch-chroot /mnt grub-mkconfig -o /boot/grub/grub.cfg
 arch-chroot /mnt rmmod pcspkr
 echo "blacklist pcspkr" >> /mnt/etc/modprobe.d/nobeep.conf
 
+
+# Install vbox guest addition
+if [ "$vbox_install" == "yes" ]; then
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                         Virtualbox Setup
+-------------------------------------------------------------------------
+"
+arch-chroot /mnt pacman --noconfirm -S virtualbox-guest-modules
+echo "vboxguest
+vboxsf
+vboxvideo
+" > /etc/modules-load.d/virtualbox.conf
+fi
+
+
+virt_check () {
+    hypervisor=$(systemd-detect-virt)
+    case $hypervisor in
+        kvm )   info_print "KVM has been detected, setting up guest tools."
+                pacstrap /mnt qemu-guest-agent &>/dev/null
+                systemctl enable qemu-guest-agent --root=/mnt &>/dev/null
+                ;;
+        vmware  )   info_print "VMWare Workstation/ESXi has been detected, setting up guest tools."
+                    pacstrap /mnt open-vm-tools >/dev/null
+                    systemctl enable vmtoolsd --root=/mnt &>/dev/null
+                    systemctl enable vmware-vmblock-fuse --root=/mnt &>/dev/null
+                    ;;
+        oracle )    info_print "VirtualBox has been detected, setting up guest tools."
+                    pacstrap /mnt virtualbox-guest-utils &>/dev/null
+                    systemctl enable vboxservice --root=/mnt &>/dev/null
+                    ;;
+        microsoft ) info_print "Hyper-V has been detected, setting up guest tools."
+                    pacstrap /mnt hyperv &>/dev/null
+                    systemctl enable hv_fcopy_daemon --root=/mnt &>/dev/null
+                    systemctl enable hv_kvp_daemon --root=/mnt &>/dev/null
+                    systemctl enable hv_vss_daemon --root=/mnt &>/dev/null
+                    ;;
+    esac
+}
+
+
+
+
 echo "Your system is installed.  Type shutdown -h now to shutdown system and remove bootable media, then restart"
 read empty
-
