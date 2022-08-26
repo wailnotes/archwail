@@ -21,7 +21,6 @@ makepkg -si --noconfirm
 cd /home/$USERNAME
 rm -rf /home/$USERNAME/$AUR_HELPER
 
-
 clear
 echo -ne "
 -------------------------------------------------------------------------
@@ -31,29 +30,23 @@ echo -ne "
 
 echo "Getting the packages lists ..."
 cd /home/$USERNAME
-sudo pacman -S --no-confirm --needed wget
+sudo pacman -S --noconfirm --needed wget
 wget https://gitlab.com/waildots/dots/-/raw/master/.config/epackages.txt
 wget https://gitlab.com/waildots/dots/-/raw/master/.config/aurpackages.txt
 
 sudo pacman -S --noconfirm --needed - < epackages.txt
 $AUR_HELPER -S --noconfirm --needed - < aurpackages.txt
 
-rm epackages.txt
-rm aurpackages.txt
-
-
 # Adb sync
 #git clone https://github.com/google/adb-sync
 #cd adb-sync
 #cp adb-sync /usr/local/bin/
-
 
 # Enabling services
 systemctl --user enable mpd.service
 sudo systemctl enable bluetooth.service
 #sudo gpasswd -a $USERS vboxusers
 #sudo modprobe vboxdrv
-
 
 clear
 echo -ne "
@@ -74,7 +67,7 @@ install_suckless() {
 install_suckless dwm
 install_suckless dwmblocks
 install_suckless st
-install_suckless slock
+# install_suckless slock #Add an slock repo
 
 
 clear
@@ -135,6 +128,8 @@ echo -ne "
 "
 # spring cleaning the home directory DANGEROUS
 
+rm epackages.txt
+rm aurpackages.txt
 mkdir pc dl temp
 
 remove_if_empty() {
