@@ -38,10 +38,6 @@ echo "Locale = "$LOCALE""
 
 user_password
 
-
-echo "Virtual box install? Please enter 'yes' to confirm, 'no' to reject:"
-read vbox_install
-
 clear
 
 ###############################################################################################
