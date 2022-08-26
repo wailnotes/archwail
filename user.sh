@@ -156,6 +156,8 @@ remove_if_empty /home/$USERNAME/Videos
 
 xdg-user-dirs-update
 
+printf "\n"
+ls -lh --color --group-directories-first
 
 # setup the bare git repo
 #cd /home/$USERNAME
