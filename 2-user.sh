@@ -38,9 +38,10 @@ echo -ne "
 -------------------------------------------------------------------------
 "
 
-echo "Getting the packages lists ..."
-cd /home/$USERNAME
 sudo pacman -S --noconfirm --needed wget
+
+# Getting the packages lists
+cd /home/$USERNAME
 wget https://gitlab.com/waildots/dots/-/raw/master/.config/epackages.txt
 wget https://gitlab.com/waildots/dots/-/raw/master/.config/aurpackages.txt
 
@@ -119,40 +120,24 @@ sed -i 's/^#user_allow_other/user_allow_other/' /etc/fuse.conf
 clear
 echo -ne "
 -------------------------------------------------------------------------
-                         Restoring Fonts
--------------------------------------------------------------------------
-"
-
-# Get fonts
-cd /home/$USERNAME
-git clone https://gitlab.com/waildots/linux-fonts.git
-rm -fr linux-fonts/.git
-sudo cp -fr linux-fonts/* /usr/share/fonts/
-sudo fc-cache -fv
-rm -rf linux-fonts
-
-
-clear
-echo -ne "
--------------------------------------------------------------------------
                      Cleaning the home directory
 -------------------------------------------------------------------------
 "
-# spring cleaning the home directory DANGEROUS
+# spring cleaning the home directory
 
 rm /home/$USERNAME/epackages.txt
 rm /home/$USERNAME/aurpackages.txt
-mkdir pc dl temp
 
 remove_if_empty() {
     if [ -z "$(ls -A $1)" ]; then
     rm -rf $1
     else
-    mv -v * /home/$USERNAME/dl
+    mv -v $1/* /home/$USERNAME/dl
     rm -rf $1
     fi
 }
 
+mkdir pc dl temp
 remove_if_empty /home/$USERNAME/Desktop
 remove_if_empty /home/$USERNAME/Downloads
 remove_if_empty /home/$USERNAME/Documents
@@ -167,16 +152,9 @@ xdg-user-dirs-update
 printf "\n"
 ls -lAh --color --group-directories-first
 
-# setup the bare git repo
-#cd /home/$USERNAME
-#mkdir dots
-#config config --local status.showUntrackedFiles no
-#
-#git clone the dots repo
-#list all the file paths in it
-#put them in a file
-#config add /path/to/file
-#config commit -m "A short message"
-#config push
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# Setup QEMU
+#-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 
