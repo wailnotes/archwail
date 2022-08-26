@@ -21,6 +21,16 @@ makepkg -si --noconfirm
 cd /home/$USERNAME
 rm -rf /home/$USERNAME/$AUR_HELPER
 
+
+clear
+echo -ne "
+-------------------------------------------------------------------------
+                     Getting the fastest Mirrors
+-------------------------------------------------------------------------
+"
+sudo reflector --latest 200 --sort rate --save /etc/pacman.d/mirrorlist
+
+
 clear
 echo -ne "
 -------------------------------------------------------------------------
@@ -85,8 +95,9 @@ rm -fr dots/.git
 cp -rfv dots/* /home/$USERNAME/
 cp -rfv dots/.* /home/$USERNAME/
 rm -fr dots
-sudo cp -f /home/$USERNAME/.config/00-keyboard.conf /etc/X11/xorg.conf.d/
-sudo cp -f /home/$USERNAME/.config/00-touchpad.conf /etc/X11/xorg.conf.d/
+sudo mkdir /etc/X11/xorg.conf.d/
+sudo cp -f /home/$USERNAME/.config/00-keyboard.conf /etc/X11/xorg.conf.d/00-keyboard.conf
+sudo cp -f /home/$USERNAME/.config/30-touchpad.conf /etc/X11/xorg.conf.d/30-touchpad.conf
 
 
 vimplugininstall() {
@@ -115,6 +126,7 @@ echo -ne "
 # Get fonts
 cd /home/$USERNAME
 git clone https://gitlab.com/waildots/linux-fonts.git
+rm -fr linux-fonts/.git
 sudo cp -fr linux-fonts/* /usr/share/fonts/
 sudo fc-cache -fv
 rm -rf linux-fonts
@@ -128,8 +140,8 @@ echo -ne "
 "
 # spring cleaning the home directory DANGEROUS
 
-rm epackages.txt
-rm aurpackages.txt
+rm /home/$USERNAME/epackages.txt
+rm /home/$USERNAME/aurpackages.txt
 mkdir pc dl temp
 
 remove_if_empty() {
@@ -153,7 +165,7 @@ remove_if_empty /home/$USERNAME/Videos
 xdg-user-dirs-update
 
 printf "\n"
-ls -lh --color --group-directories-first
+ls -lAh --color --group-directories-first
 
 # setup the bare git repo
 #cd /home/$USERNAME
