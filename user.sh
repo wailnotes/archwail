@@ -5,11 +5,6 @@
 AUR_HELPER="yay"
 USERNAME="wn"
 DOTS_REPO="https://gitlab.com/waildots/dots.git"
-DWM_REPO="https://gitlab.com/waildots/dwm.git"
-DWMBLOCKS_REPO="https://gitlab.com/waildots/dwmblocks.git"
-ST_REPO="https://gitlab.com/waildots/st.git"
-SLOCK_REPO="https://gitlab.com/waildots/slock.git"
-FONTS_REPO="https://gitlab.com/waildots/linux-fonts.git"
 
 ######################################################################################################
 
@@ -70,14 +65,17 @@ cp -rfv $DOTS_REPO/* /home/$USERNAME/
 cp -rfv $DOTS_REPO/.* /home/$USERNAME/
 rm -fr $DOTS_REPO
 
-# dwm
-git clone $DWM_REPO
-cd /home/$USERNAME/$DWM_REPO
-sudo make clean install
 
+install_suckless() {
+    cd /home/$USERNAME
+    git clone https://gitlab.com/waildots/$1.git
+    cd /home/$USERNAME/$1
+    sudo make clean install
+    cd /home/$USERNAME
+    rm -rf $1/
+}
 
-
-
+install_suckless dwmblocks
 
 
 
