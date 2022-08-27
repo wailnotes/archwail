@@ -159,7 +159,7 @@ options=("gitlab" "hdd" "exit")
 select_option $? 1 "${options[@]}"
 
 
-case in $? 
+case $? in 
     0) restore_from_git;;
     1) restore_from_hdd;;
     2) exit ;;
