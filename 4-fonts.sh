@@ -125,7 +125,8 @@ echo -ne "
 cd /home/$USERNAME
 git clone https://gitlab.com/waildots/linux-fonts.git
 rm -fr linux-fonts/.git
-sudo cp -fr linux-fonts/* /usr/share/fonts/
+mkdir -p /usr/local/share/fonts
+sudo cp -fr linux-fonts/* /usr/local/share/fonts/
 fc-cache -fv
 rm -rf linux-fonts
 }
@@ -140,7 +141,8 @@ echo -ne "
 -------------------------------------------------------------------------
 "
 
-# sudo rsync (arguments) /run/media/... /linux-fonts /usr/share/fonts/
+mkdir -p /usr/local/share/fonts
+# sudo rsync (arguments) /run/media/... /linux-fonts /usr/local/share/fonts/
 fc-cache -fv
 }
 

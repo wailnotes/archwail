@@ -1,0 +1,27 @@
+adb-sync-git
+anki
+appimagelauncher
+brave-bin
+dragon-drop
+hunspell-ar
+nuclear
+prowlarr
+spotify
+spotify-adblock-git
+task-spooler
+todoist-appimage
+urlview
+xkblayout-state-git
+zoom
+zotero-bin
+
+
+
+# TO TRY (from Archtitus) 
+
+lightly-git
+lightlyshaders-git
+autojump
+nordic-darker-standard-buttons-theme
+nordic-darker-theme
+nordic-theme

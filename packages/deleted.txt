@@ -1,0 +1,9 @@
+# AUR
+libinput-gestures
+libjffi
+orchis-theme-git
+qt5-styleplugins
+xdman
+
+
+

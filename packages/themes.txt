@@ -1,0 +1,6 @@
+arc-darkest-theme-git
+arc-gtk-theme
+bibata-cursor-theme-bin
+materia-gtk-theme
+numix-icon-theme-git
+papirus-icon-theme
