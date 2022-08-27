@@ -42,11 +42,14 @@ sudo pacman -S --noconfirm --needed wget
 
 # Getting the packages lists
 cd /home/$USERNAME
-wget https://gitlab.com/waildots/dots/-/raw/master/.config/epackages.txt
-wget https://gitlab.com/waildots/dots/-/raw/master/.config/aurpackages.txt
+wget https://gitlab.com/waildots/dots/-/raw/master/.config/my-packages/pacman-packages.txt
+wget https://gitlab.com/waildots/dots/-/raw/master/.config/my-packages/aur-packages.txt
 
-sudo pacman -S --noconfirm --needed - < epackages.txt
-$AUR_HELPER -S --noconfirm --needed - < aurpackages.txt
+# Use all cores for compilation.
+sed -i "s/-j2/-j$(nproc)/;/^#MAKEFLAGS/s/^#//" /etc/makepkg.conf
+
+sudo pacman -S --noconfirm --needed - < pacman-packages.txt
+$AUR_HELPER -S --noconfirm --needed - < aur-packages.txt
 
 # Adb sync
 #git clone https://github.com/google/adb-sync
@@ -97,8 +100,8 @@ cp -rfv dots/* /home/$USERNAME/
 cp -rfv dots/.* /home/$USERNAME/
 rm -fr dots
 sudo mkdir /etc/X11/xorg.conf.d/
-sudo cp -f /home/$USERNAME/.config/00-keyboard.conf /etc/X11/xorg.conf.d/00-keyboard.conf
-sudo cp -f /home/$USERNAME/.config/30-touchpad.conf /etc/X11/xorg.conf.d/30-touchpad.conf
+sudo cp -f /home/$USERNAME/.config/x11/00-keyboard.conf /etc/X11/xorg.conf.d/00-keyboard.conf
+sudo cp -f /home/$USERNAME/.config/x11/30-touchpad.conf /etc/X11/xorg.conf.d/30-touchpad.conf
 
 
 vimplugininstall() {
