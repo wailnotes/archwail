@@ -139,8 +139,8 @@ echo -ne "
                        Restoring Fonts From HDD
 -------------------------------------------------------------------------
 "
-# Get fonts
-sudo rsync (arguments) /run/media/... /linux-fonts /usr/share/fonts/
+
+# sudo rsync (arguments) /run/media/... /linux-fonts /usr/share/fonts/
 fc-cache -fv
 }
 
